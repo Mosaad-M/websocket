@@ -1,0 +1,14 @@
+[workspace]
+channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
+name = "websocket"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+compile-errno = "gcc -shared -fPIC -o liberrno_helper.so errno_helper.c"
+run = { cmd = "bash build_and_run.sh main.mojo", depends-on = ["compile-errno"] }
+test = { cmd = "bash -c 'python test_ws_server.py & sleep 1 && bash build_and_run.sh test_websocket.mojo; RET=$?; kill %1 2>/dev/null; exit $RET'", depends-on = ["compile-errno"] }
+format = "mblack websocket.mojo main.mojo test_websocket.mojo"
+
+[dependencies]
+mojo = ">=0.26.1"

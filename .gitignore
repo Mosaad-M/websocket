@@ -1,0 +1,4 @@
+.pixi/
+.build/
+liberrno_helper.so
+.mojo_flags
