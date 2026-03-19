@@ -2,3 +2,9 @@
 .build/
 liberrno_helper.so
 .mojo_flags
+
+# local-dev symlinks to sibling repos (broken in CI)
+tcp.mojo
+url.mojo
+crypto
+.claude/
