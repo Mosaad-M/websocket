@@ -16,7 +16,7 @@ mkdir -p "$BUILD_DIR"
 if [ -f "$SCRIPT_DIR/.mojo_flags" ]; then
     FLAGS=$(cat "$SCRIPT_DIR/.mojo_flags")
 else
-    FLAGS="-I /home/mmosaad/mojo_pg/tls_pure"
+    FLAGS="-I ${TLS_PURE:-../tls_pure}"
 fi
 
 mojo build "$MOJO_FILE" -o "$BUILD_DIR/$BASENAME" \
