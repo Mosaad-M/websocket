@@ -11,4 +11,4 @@ test = { cmd = "bash -c 'python test_ws_server.py & sleep 1 && bash build_and_ru
 format = "mblack websocket.mojo main.mojo test_websocket.mojo"
 
 [dependencies]
-mojo = ">=0.26.1"
+mojo = ">=0.26.2"
