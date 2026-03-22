@@ -11,8 +11,8 @@
 #
 # ============================================================================
 
-from ffi import external_call
-from memory.unsafe_pointer import alloc, UnsafePointer
+from std.ffi import external_call
+from std.memory.unsafe_pointer import alloc, UnsafePointer
 
 from tcp import TcpSocket
 from tls.socket import TlsSocket, load_system_ca_bundle
