@@ -20,6 +20,7 @@ else
 fi
 
 mojo build "$MOJO_FILE" -o "$BUILD_DIR/$BASENAME" \
+    --mcpu x86-64-v2 \
     -I "$SCRIPT_DIR" \
     $FLAGS \
     -Xlinker -L"$SCRIPT_DIR" \
