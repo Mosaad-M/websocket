@@ -60,27 +60,27 @@ struct WebSocketFrame(Copyable, Movable):
     var opcode: UInt8
     var payload: List[UInt8]
 
-    fn __init__(out self):
+    def __init__(out self):
         self.fin = True
         self.opcode = WS_OPCODE_TEXT
         self.payload = List[UInt8]()
 
-    fn __init__(out self, fin: Bool, opcode: UInt8, payload: List[UInt8]):
+    def __init__(out self, fin: Bool, opcode: UInt8, payload: List[UInt8]):
         self.fin = fin
         self.opcode = opcode
         self.payload = payload.copy()
 
-    fn __copyinit__(out self, copy: Self):
+    def __copyinit__(out self, copy: Self):
         self.fin = copy.fin
         self.opcode = copy.opcode
         self.payload = copy.payload.copy()
 
-    fn __moveinit__(out self, deinit take: Self):
+    def __moveinit__(out self, deinit take: Self):
         self.fin = take.fin
         self.opcode = take.opcode
         self.payload = take.payload^
 
-    fn as_text(self) -> String:
+    def as_text(self) -> String:
         """Interpret payload as UTF-8 text."""
         var copy = self.payload.copy()
         return String(unsafe_from_utf8=copy^)
@@ -117,7 +117,7 @@ struct WebSocket(Movable):
     var allow_private_ips: Bool
     var origin: String
 
-    fn __init__(out self):
+    def __init__(out self):
         self._tcp = TcpSocket()
         self._tls = TlsSocket(Int32(0))
         self._use_tls = False
@@ -130,7 +130,7 @@ struct WebSocket(Movable):
         self.allow_private_ips = True
         self.origin = String("")
 
-    fn __moveinit__(out self, deinit take: Self):
+    def __moveinit__(out self, deinit take: Self):
         self._tcp = take._tcp^
         self._tls = take._tls^
         self._use_tls = take._use_tls
@@ -143,7 +143,7 @@ struct WebSocket(Movable):
         self.allow_private_ips = take.allow_private_ips
         self.origin = take.origin^
 
-    fn connect(mut self, url_str: String) raises:
+    def connect(mut self, url_str: String) raises:
         """Connect to a WebSocket server.
 
         Parses the URL, establishes TCP/TLS connection, and performs
@@ -186,7 +186,7 @@ struct WebSocket(Movable):
 
         self._connected = True
 
-    fn send_text(mut self, data: String) raises:
+    def send_text(mut self, data: String) raises:
         """Send a text message."""
         var bytes = data.as_bytes()
         # M4: Enforce send payload size limit
@@ -203,7 +203,7 @@ struct WebSocket(Movable):
             payload.append(bytes[i])
         self._send_frame(WS_OPCODE_TEXT, payload)
 
-    fn send_binary(mut self, data: List[UInt8]) raises:
+    def send_binary(mut self, data: List[UInt8]) raises:
         """Send a binary message."""
         # M4: Enforce send payload size limit
         if len(data) > self.max_send_size:
@@ -216,7 +216,7 @@ struct WebSocket(Movable):
             )
         self._send_frame(WS_OPCODE_BINARY, data)
 
-    fn send_ping(mut self, payload: String = "") raises:
+    def send_ping(mut self, payload: String = "") raises:
         """Send a ping control frame."""
         var bytes = payload.as_bytes()
         var data = List[UInt8](capacity=len(bytes))
@@ -224,7 +224,7 @@ struct WebSocket(Movable):
             data.append(bytes[i])
         self._send_frame(WS_OPCODE_PING, data)
 
-    fn recv(mut self) raises -> WebSocketFrame:
+    def recv(mut self) raises -> WebSocketFrame:
         """Receive the next complete message.
 
         Handles control frames internally:
@@ -325,7 +325,7 @@ struct WebSocket(Movable):
         # Unreachable, but required by Mojo
         return WebSocketFrame()
 
-    fn close(mut self, code: Int = 1000, reason: String = "") raises:
+    def close(mut self, code: Int = 1000, reason: String = "") raises:
         """Send close frame and shut down the connection.
 
         Args:
@@ -372,7 +372,7 @@ struct WebSocket(Movable):
     # Private Methods
     # ========================================================================
 
-    fn _handshake(mut self, host_header: String) raises:
+    def _handshake(mut self, host_header: String) raises:
         """Perform the WebSocket HTTP upgrade handshake."""
         # Generate 16-byte random key, base64 encode it
         var key_bytes = csprng_bytes(16)
@@ -409,7 +409,7 @@ struct WebSocket(Movable):
         # M2: Strict status line validation
         _validate_handshake_response(response, ws_key)
 
-    fn _read_handshake_response(mut self) raises -> String:
+    def _read_handshake_response(mut self) raises -> String:
         """Read the HTTP handshake response until \\r\\n\\r\\n."""
         var buf = List[UInt8](capacity=4096)
 
@@ -433,7 +433,7 @@ struct WebSocket(Movable):
 
         return String(unsafe_from_utf8=buf^)
 
-    fn _send_frame(
+    def _send_frame(
         mut self, opcode: UInt8, payload: List[UInt8]
     ) raises:
         """Build and send a masked WebSocket frame.
@@ -483,7 +483,7 @@ struct WebSocket(Movable):
         var frame_str = _bytes_to_string(frame)
         self._raw_send_str(frame_str)
 
-    fn _recv_frame(mut self) raises -> WebSocketFrame:
+    def _recv_frame(mut self) raises -> WebSocketFrame:
         """Receive and decode a single WebSocket frame.
 
         Validates per RFC 6455:
@@ -560,7 +560,7 @@ struct WebSocket(Movable):
 
         return WebSocketFrame(fin, opcode, payload^)
 
-    fn _recv_exact(mut self, n: Int) raises -> List[UInt8]:
+    def _recv_exact(mut self, n: Int) raises -> List[UInt8]:
         """Read exactly n bytes from the socket."""
         var result = List[UInt8](capacity=n)
 
@@ -596,7 +596,7 @@ struct WebSocket(Movable):
 
         return result^
 
-    fn _raw_send_str(mut self, data: String) raises:
+    def _raw_send_str(mut self, data: String) raises:
         """Send raw string data over TCP or TLS."""
         if self._use_tls:
             var raw = data.as_bytes()
@@ -613,7 +613,7 @@ struct WebSocket(Movable):
 # ============================================================================
 
 
-fn _compute_accept_key(ws_key: String) -> String:
+def _compute_accept_key(ws_key: String) -> String:
     """Compute Sec-WebSocket-Accept from the client key.
 
     Accept = Base64(SHA-1(key + MAGIC))
@@ -627,20 +627,20 @@ fn _compute_accept_key(ws_key: String) -> String:
     return base64_encode(hash)
 
 
-fn _buf_append_str(mut buf: List[UInt8], s: String):
+def _buf_append_str(mut buf: List[UInt8], s: String):
     """Append string bytes to a byte buffer."""
     var bytes = s.as_bytes()
     for i in range(len(bytes)):
         buf.append(bytes[i])
 
 
-fn _bytes_to_string(data: List[UInt8]) -> String:
+def _bytes_to_string(data: List[UInt8]) -> String:
     """Convert a List[UInt8] to a String (raw bytes, not UTF-8 validated)."""
     var copy = data.copy()
     return String(unsafe_from_utf8=copy^)
 
 
-fn _str_contains(haystack: String, needle: String) -> Bool:
+def _str_contains(haystack: String, needle: String) -> Bool:
     """Check if haystack contains needle (case-sensitive)."""
     var h_bytes = haystack.as_bytes()
     var n_bytes = needle.as_bytes()
@@ -661,7 +661,7 @@ fn _str_contains(haystack: String, needle: String) -> Bool:
     return False
 
 
-fn _validate_no_crlf(s: String, label: String) raises:
+def _validate_no_crlf(s: String, label: String) raises:
     """M1: Reject strings containing CR or LF to prevent CRLF injection."""
     var b = s.as_bytes()
     for i in range(len(b)):
@@ -671,7 +671,7 @@ fn _validate_no_crlf(s: String, label: String) raises:
             )
 
 
-fn _validate_handshake_response(
+def _validate_handshake_response(
     response: String, ws_key: String
 ) raises:
     """M2: Strictly validate the HTTP upgrade handshake response.
@@ -761,7 +761,7 @@ fn _validate_handshake_response(
         )
 
 
-fn _str_starts_with(s: String, prefix: String) -> Bool:
+def _str_starts_with(s: String, prefix: String) -> Bool:
     """Check if string starts with prefix."""
     var s_bytes = s.as_bytes()
     var p_bytes = prefix.as_bytes()
@@ -773,7 +773,7 @@ fn _str_starts_with(s: String, prefix: String) -> Bool:
     return True
 
 
-fn _eq_ignore_case(a: String, b: String) -> Bool:
+def _eq_ignore_case(a: String, b: String) -> Bool:
     """Case-insensitive string comparison."""
     var a_bytes = a.as_bytes()
     var b_bytes = b.as_bytes()
@@ -792,7 +792,7 @@ fn _eq_ignore_case(a: String, b: String) -> Bool:
     return True
 
 
-fn _is_valid_close_code(code: Int) -> Bool:
+def _is_valid_close_code(code: Int) -> Bool:
     """H3: Validate WebSocket close status code per RFC 6455 Section 7.4.1.
 
     Valid codes: 1000-1003, 1007-1011, 3000-4999.
@@ -807,7 +807,7 @@ fn _is_valid_close_code(code: Int) -> Bool:
     return False
 
 
-fn _validate_utf8(data: List[UInt8]) -> Bool:
+def _validate_utf8(data: List[UInt8]) -> Bool:
     """H4: Validate that byte sequence is valid UTF-8.
 
     Checks:

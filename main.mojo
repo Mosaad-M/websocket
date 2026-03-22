@@ -11,7 +11,7 @@
 from websocket import WebSocket
 
 
-fn main() raises:
+def main() raises:
     print("=== WebSocket Demo ===")
     print()
 

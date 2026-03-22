@@ -18,21 +18,21 @@ alias MALICIOUS_URL = "ws://127.0.0.1:18082"
 # ============================================================================
 
 
-fn assert_str_eq(actual: String, expected: String, label: String) raises:
+def assert_str_eq(actual: String, expected: String, label: String) raises:
     if actual != expected:
         raise Error(
             label + ": expected '" + expected + "', got '" + actual + "'"
         )
 
 
-fn assert_int_eq(actual: Int, expected: Int, label: String) raises:
+def assert_int_eq(actual: Int, expected: Int, label: String) raises:
     if actual != expected:
         raise Error(
             label + ": expected " + String(expected) + ", got " + String(actual)
         )
 
 
-fn assert_true(condition: Bool, label: String) raises:
+def assert_true(condition: Bool, label: String) raises:
     if not condition:
         raise Error(label + ": expected True")
 
@@ -42,7 +42,7 @@ fn assert_true(condition: Bool, label: String) raises:
 # ============================================================================
 
 
-fn test_connect_and_close() raises:
+def test_connect_and_close() raises:
     """Connect to echo server and close cleanly."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -51,7 +51,7 @@ fn test_connect_and_close() raises:
     assert_true(not ws._connected, "disconnected after close")
 
 
-fn test_send_recv_text() raises:
+def test_send_recv_text() raises:
     """Send text message and verify echo."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -62,7 +62,7 @@ fn test_send_recv_text() raises:
     ws.close()
 
 
-fn test_send_recv_binary() raises:
+def test_send_recv_binary() raises:
     """Send binary message and verify echo."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -82,7 +82,7 @@ fn test_send_recv_binary() raises:
     ws.close()
 
 
-fn test_multiple_messages() raises:
+def test_multiple_messages() raises:
     """Send and receive multiple messages on same connection."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -102,7 +102,7 @@ fn test_multiple_messages() raises:
     ws.close()
 
 
-fn test_medium_message() raises:
+def test_medium_message() raises:
     """Send message >125 bytes (tests 2-byte extended length encoding)."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -119,7 +119,7 @@ fn test_medium_message() raises:
     ws.close()
 
 
-fn test_large_message() raises:
+def test_large_message() raises:
     """Send message >65535 bytes (tests 8-byte extended length encoding)."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -141,7 +141,7 @@ fn test_large_message() raises:
     ws.close()
 
 
-fn test_empty_message() raises:
+def test_empty_message() raises:
     """Send empty text message."""
     var ws = WebSocket()
     ws.connect(TEST_URL)
@@ -152,7 +152,7 @@ fn test_empty_message() raises:
     ws.close()
 
 
-fn test_connect_failure() raises:
+def test_connect_failure() raises:
     """Connection to non-existent server should raise."""
     var ws = WebSocket()
     var raised = False
@@ -169,7 +169,7 @@ fn test_connect_failure() raises:
 # ============================================================================
 
 
-fn test_security_masked_server_frame() raises:
+def test_security_masked_server_frame() raises:
     """H2: Server sends masked frame — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/masked-frame")
@@ -186,7 +186,7 @@ fn test_security_masked_server_frame() raises:
         raise Error("expected error for masked server frame")
 
 
-fn test_security_rsv_bits() raises:
+def test_security_rsv_bits() raises:
     """H1: Server sends frame with RSV1 bit set — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/rsv-bits")
@@ -203,7 +203,7 @@ fn test_security_rsv_bits() raises:
         raise Error("expected error for non-zero RSV bits")
 
 
-fn test_security_oversized_ping() raises:
+def test_security_oversized_ping() raises:
     """C3: Server sends ping with >125 byte payload — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/oversized-ping")
@@ -220,7 +220,7 @@ fn test_security_oversized_ping() raises:
         raise Error("expected error for oversized ping")
 
 
-fn test_security_fragmented_ping() raises:
+def test_security_fragmented_ping() raises:
     """L1: Server sends ping with FIN=0 — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/fragmented-ping")
@@ -237,7 +237,7 @@ fn test_security_fragmented_ping() raises:
         raise Error("expected error for fragmented control frame")
 
 
-fn test_security_huge_payload() raises:
+def test_security_huge_payload() raises:
     """C1: Server declares 1GB payload — client rejects without allocating."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/huge-payload")
@@ -254,7 +254,7 @@ fn test_security_huge_payload() raises:
         raise Error("expected error for huge payload")
 
 
-fn test_security_custom_max_frame_size() raises:
+def test_security_custom_max_frame_size() raises:
     """Configurable max_frame_size is enforced."""
     var ws = WebSocket()
     ws.max_frame_size = 100  # 100 bytes max
@@ -281,7 +281,7 @@ fn test_security_custom_max_frame_size() raises:
 # ============================================================================
 
 
-fn test_security_invalid_close_code() raises:
+def test_security_invalid_close_code() raises:
     """H3: Server sends close frame with invalid code 999 — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/invalid-close-code")
@@ -298,7 +298,7 @@ fn test_security_invalid_close_code() raises:
         raise Error("expected error for invalid close code")
 
 
-fn test_security_close_code_1005() raises:
+def test_security_close_code_1005() raises:
     """H3: Server sends close with reserved code 1005 — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/close-code-1005")
@@ -315,7 +315,7 @@ fn test_security_close_code_1005() raises:
         raise Error("expected error for reserved close code 1005")
 
 
-fn test_security_invalid_utf8() raises:
+def test_security_invalid_utf8() raises:
     """H4: Server sends text frame with invalid UTF-8 — client MUST reject."""
     var ws = WebSocket()
     ws.connect(MALICIOUS_URL + "/invalid-utf8")
@@ -332,7 +332,7 @@ fn test_security_invalid_utf8() raises:
         raise Error("expected error for invalid UTF-8 text frame")
 
 
-fn test_security_bad_handshake_200() raises:
+def test_security_bad_handshake_200() raises:
     """M2: Server responds with HTTP 200 instead of 101 — client MUST reject."""
     var ws = WebSocket()
     var raised = False
@@ -347,7 +347,7 @@ fn test_security_bad_handshake_200() raises:
         raise Error("expected error for non-101 handshake response")
 
 
-fn test_security_bad_handshake_accept() raises:
+def test_security_bad_handshake_accept() raises:
     """M2: Server responds with wrong Sec-WebSocket-Accept — client MUST reject."""
     var ws = WebSocket()
     var raised = False
@@ -367,7 +367,7 @@ fn test_security_bad_handshake_accept() raises:
 # ============================================================================
 
 
-fn test_security_ssrf_private_ip() raises:
+def test_security_ssrf_private_ip() raises:
     """SSRF: Connection to private IP blocked when allow_private_ips=False."""
     var ws = WebSocket()
     ws.allow_private_ips = False
@@ -385,7 +385,7 @@ fn test_security_ssrf_private_ip() raises:
         raise Error("expected SSRF protection to block private IP")
 
 
-fn test_security_send_size_limit() raises:
+def test_security_send_size_limit() raises:
     """M4: Send exceeding max_send_size is rejected."""
     var ws = WebSocket()
     ws.max_send_size = 100  # 100 bytes max
@@ -406,7 +406,7 @@ fn test_security_send_size_limit() raises:
         raise Error("expected error for send exceeding max_send_size")
 
 
-fn test_security_send_binary_size_limit() raises:
+def test_security_send_binary_size_limit() raises:
     """M4: Binary send exceeding max_send_size is rejected."""
     var ws = WebSocket()
     ws.max_send_size = 50  # 50 bytes max
@@ -426,7 +426,7 @@ fn test_security_send_binary_size_limit() raises:
         raise Error("expected error for binary send exceeding max_send_size")
 
 
-fn test_security_origin_header() raises:
+def test_security_origin_header() raises:
     """Origin header appears in handshake when set."""
     var ws = WebSocket()
     ws.origin = "https://example.com"
@@ -439,7 +439,7 @@ fn test_security_origin_header() raises:
     ws.close()
 
 
-fn _err_contains(haystack: String, needle: String) -> Bool:
+def _err_contains(haystack: String, needle: String) -> Bool:
     """Check if error message contains a substring."""
     var h = haystack.as_bytes()
     var n = needle.as_bytes()
@@ -463,15 +463,15 @@ fn _err_contains(haystack: String, needle: String) -> Bool:
 # ============================================================================
 
 
-fn main() raises:
+def main() raises:
     var passed = 0
     var failed = 0
 
-    fn run_test(
+    def run_test(
         name: String,
         mut passed: Int,
         mut failed: Int,
-        test_fn: fn () raises -> None,
+        test_fn: def () raises -> None,
     ):
         try:
             test_fn()
