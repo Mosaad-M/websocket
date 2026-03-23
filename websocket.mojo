@@ -13,6 +13,26 @@
 
 from std.ffi import external_call
 from std.memory.unsafe_pointer import alloc, UnsafePointer
+from std.sys import CompilationTarget
+
+
+def _get_errno() -> Int32:
+    """Read errno without a C shim. Uses __errno_location (Linux) or __error (macOS).
+    comptime if ensures only the live branch is compiled, avoiding unresolved symbols."""
+    comptime if CompilationTarget.is_linux():
+        var ptr = external_call["__errno_location", Int]()
+        var ebuf = alloc[Int32](1)
+        _ = external_call["memcpy", Int](Int(ebuf), ptr, Int(4))
+        var val = ebuf[]
+        ebuf.free()
+        return val
+    else:
+        var ptr = external_call["__error", Int]()
+        var ebuf = alloc[Int32](1)
+        _ = external_call["memcpy", Int](Int(ebuf), ptr, Int(4))
+        var val = ebuf[]
+        ebuf.free()
+        return val
 
 from tcp import TcpSocket
 from tls.socket import TlsSocket, load_system_ca_bundle
@@ -581,8 +601,7 @@ struct WebSocket(Movable):
                 )
                 if ret < 0:
                     # Check for EINTR (errno=4) — retry on signal interruption
-                    var errno_val = external_call["mojo_get_errno", Int32]()
-                    if errno_val == 4:
+                    if _get_errno() == 4:
                         buf.free()
                         continue
                     buf.free()
