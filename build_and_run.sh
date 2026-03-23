@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build a Mojo file with errno_helper support and run it.
+# Build a Mojo file and run it.
 # No OpenSSL dependency — TLS is provided by tls_pure (pure Mojo).
 # Usage: ./build_and_run.sh <file.mojo> [args...]
 set -e
@@ -19,13 +19,16 @@ else
     FLAGS="-I ${TLS_PURE:-../tls_pure}"
 fi
 
+# Detect CPU target
+if [ "$(uname -m)" = "arm64" ] || [ "$(uname -m)" = "aarch64" ]; then
+    MCPU_FLAG="--mcpu apple-m1"
+else
+    MCPU_FLAG="--mcpu x86-64-v2"
+fi
+
 mojo build "$MOJO_FILE" -o "$BUILD_DIR/$BASENAME" \
-    --mcpu x86-64-v2 \
+    $MCPU_FLAG \
     -I "$SCRIPT_DIR" \
-    $FLAGS \
-    -Xlinker -L"$SCRIPT_DIR" \
-    -Xlinker -lerrno_helper \
-    -Xlinker -rpath \
-    -Xlinker "$SCRIPT_DIR"
+    $FLAGS
 
 "$BUILD_DIR/$BASENAME" "$@"
