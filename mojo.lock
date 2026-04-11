@@ -3,10 +3,10 @@
   "packages": [
     {
       "name": "tls",
-      "version": "1.3.1",
-      "source_url": "https://github.com/Mosaad-M/tls/archive/refs/tags/v1.3.1.tar.gz",
-      "sha256": "e52c5032162d4c827d125608bf1b72c8836bf0860fd6540c19049a12ea417e96",
-      "install_path": "/Users/myronmosaad/.mojo/packages/tls/1.3.1"
+      "version": "1.3.2",
+      "source_url": "https://github.com/Mosaad-M/tls/archive/refs/tags/v1.3.2.tar.gz",
+      "sha256": "65e3f6f5f41fa08eb4c9a5dfeda05a589e4a517c9e1adbc31c1a709a5cf89be9",
+      "install_path": "/Users/myronmosaad/.mojo/packages/tls/1.3.2"
     },
     {
       "name": "tcp",
