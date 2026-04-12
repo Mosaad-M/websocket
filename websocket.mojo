@@ -47,24 +47,24 @@ from crypto.random import csprng_bytes
 # WebSocket Constants
 # ============================================================================
 
-alias WS_OPCODE_CONTINUATION: UInt8 = 0x0
-alias WS_OPCODE_TEXT: UInt8 = 0x1
-alias WS_OPCODE_BINARY: UInt8 = 0x2
-alias WS_OPCODE_CLOSE: UInt8 = 0x8
-alias WS_OPCODE_PING: UInt8 = 0x9
-alias WS_OPCODE_PONG: UInt8 = 0xA
+comptime WS_OPCODE_CONTINUATION: UInt8 = 0x0
+comptime WS_OPCODE_TEXT: UInt8 = 0x1
+comptime WS_OPCODE_BINARY: UInt8 = 0x2
+comptime WS_OPCODE_CLOSE: UInt8 = 0x8
+comptime WS_OPCODE_PING: UInt8 = 0x9
+comptime WS_OPCODE_PONG: UInt8 = 0xA
 
-alias WS_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+comptime WS_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 # Default limits
-alias DEFAULT_MAX_MESSAGE_SIZE = 16 * 1024 * 1024  # 16 MB
-alias DEFAULT_MAX_FRAME_SIZE = 16 * 1024 * 1024  # 16 MB
-alias DEFAULT_MAX_SEND_SIZE = 16 * 1024 * 1024  # 16 MB
+comptime DEFAULT_MAX_MESSAGE_SIZE = 16 * 1024 * 1024  # 16 MB
+comptime DEFAULT_MAX_FRAME_SIZE = 16 * 1024 * 1024  # 16 MB
+comptime DEFAULT_MAX_SEND_SIZE = 16 * 1024 * 1024  # 16 MB
 
 # Close codes
-alias WS_CLOSE_NORMAL: Int = 1000
-alias WS_CLOSE_PROTOCOL_ERROR: Int = 1002
-alias WS_CLOSE_TOO_BIG: Int = 1009
+comptime WS_CLOSE_NORMAL: Int = 1000
+comptime WS_CLOSE_PROTOCOL_ERROR: Int = 1002
+comptime WS_CLOSE_TOO_BIG: Int = 1009
 
 
 

@@ -9,8 +9,8 @@
 from websocket import WebSocket, WebSocketFrame, WS_OPCODE_TEXT, WS_OPCODE_BINARY, WS_OPCODE_CLOSE
 
 
-alias TEST_URL = "ws://127.0.0.1:18081"
-alias MALICIOUS_URL = "ws://127.0.0.1:18082"
+comptime TEST_URL = "ws://127.0.0.1:18081"
+comptime MALICIOUS_URL = "ws://127.0.0.1:18082"
 
 
 # ============================================================================
