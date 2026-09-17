@@ -599,14 +599,45 @@ struct WebSocket(Movable):
                 )
                 if ret < 0:
                     # Check for EINTR (errno=4) — retry on signal interruption
-                    if _get_errno() == 4:
+                    var errno = _get_errno()
+                    if errno == 4:
                         buf.unsafe_free()
                         continue
                     buf.unsafe_free()
-                    raise Error("TCP read failed in _recv_exact")
+                    # errno 35 (macOS) / 11 (Linux) is EAGAIN/EWOULDBLOCK, which
+                    # on a blocking socket with SO_RCVTIMEO set means the
+                    # receive timeout elapsed with no data -- distinct from a
+                    # real socket error or a closed connection. Report which
+                    # one actually happened: a prior version of this message
+                    # ("TCP read failed") didn't distinguish these, which made
+                    # a real bug (an unrelated malformed CDP command upstream
+                    # causing Chrome to silently drop it, so no response ever
+                    # arrived) look like a mysterious dropped connection.
+                    if errno == 35 or errno == 11:
+                        raise Error(
+                            "TCP read timed out in _recv_exact (errno="
+                            + String(errno)
+                            + ", got "
+                            + String(len(result))
+                            + "/"
+                            + String(n)
+                            + " bytes) -- no data arrived within the socket's"
+                            " receive timeout"
+                        )
+                    raise Error(
+                        "TCP read failed in _recv_exact (errno="
+                        + String(errno)
+                        + ")"
+                    )
                 elif ret == 0:
                     buf.unsafe_free()
-                    raise Error("TCP read failed in _recv_exact")
+                    raise Error(
+                        "TCP connection closed by peer in _recv_exact (got "
+                        + String(len(result))
+                        + "/"
+                        + String(n)
+                        + " bytes)"
+                    )
                 for i in range(Int(ret)):
                     result.append(buf[unsafe_offset=i])
                 buf.unsafe_free()
