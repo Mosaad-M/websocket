@@ -12,7 +12,8 @@
 # ============================================================================
 
 from std.ffi import external_call
-from std.memory.unsafe_pointer import alloc, UnsafePointer
+from std.memory import alloc
+from std.memory.unsafe_pointer import Pointer
 from std.sys import CompilationTarget
 
 
@@ -24,14 +25,14 @@ def _get_errno() -> Int32:
         var ebuf = alloc[Int32](1)
         _ = external_call["memcpy", Int](Int(ebuf), ptr, Int(4))
         var val = ebuf[]
-        ebuf.free()
+        ebuf.unsafe_free()
         return val
     else:
         var ptr = external_call["__error", Int]()
         var ebuf = alloc[Int32](1)
         _ = external_call["memcpy", Int](Int(ebuf), ptr, Int(4))
         var val = ebuf[]
-        ebuf.free()
+        ebuf.unsafe_free()
         return val
 
 from tcp import TcpSocket
@@ -47,24 +48,24 @@ from crypto.random import csprng_bytes
 # WebSocket Constants
 # ============================================================================
 
-alias WS_OPCODE_CONTINUATION: UInt8 = 0x0
-alias WS_OPCODE_TEXT: UInt8 = 0x1
-alias WS_OPCODE_BINARY: UInt8 = 0x2
-alias WS_OPCODE_CLOSE: UInt8 = 0x8
-alias WS_OPCODE_PING: UInt8 = 0x9
-alias WS_OPCODE_PONG: UInt8 = 0xA
+comptime WS_OPCODE_CONTINUATION: UInt8 = 0x0
+comptime WS_OPCODE_TEXT: UInt8 = 0x1
+comptime WS_OPCODE_BINARY: UInt8 = 0x2
+comptime WS_OPCODE_CLOSE: UInt8 = 0x8
+comptime WS_OPCODE_PING: UInt8 = 0x9
+comptime WS_OPCODE_PONG: UInt8 = 0xA
 
-alias WS_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+comptime WS_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
 # Default limits
-alias DEFAULT_MAX_MESSAGE_SIZE = 16 * 1024 * 1024  # 16 MB
-alias DEFAULT_MAX_FRAME_SIZE = 16 * 1024 * 1024  # 16 MB
-alias DEFAULT_MAX_SEND_SIZE = 16 * 1024 * 1024  # 16 MB
+comptime DEFAULT_MAX_MESSAGE_SIZE = 16 * 1024 * 1024  # 16 MB
+comptime DEFAULT_MAX_FRAME_SIZE = 16 * 1024 * 1024  # 16 MB
+comptime DEFAULT_MAX_SEND_SIZE = 16 * 1024 * 1024  # 16 MB
 
 # Close codes
-alias WS_CLOSE_NORMAL: Int = 1000
-alias WS_CLOSE_PROTOCOL_ERROR: Int = 1002
-alias WS_CLOSE_TOO_BIG: Int = 1009
+comptime WS_CLOSE_NORMAL: Int = 1000
+comptime WS_CLOSE_PROTOCOL_ERROR: Int = 1002
+comptime WS_CLOSE_TOO_BIG: Int = 1009
 
 
 
@@ -90,15 +91,15 @@ struct WebSocketFrame(Copyable, Movable):
         self.opcode = opcode
         self.payload = payload.copy()
 
-    def __copyinit__(out self, copy: Self):
+    def __init__(out self, *, copy: Self):
         self.fin = copy.fin
         self.opcode = copy.opcode
         self.payload = copy.payload.copy()
 
-    def __moveinit__(out self, deinit take: Self):
-        self.fin = take.fin
-        self.opcode = take.opcode
-        self.payload = take.payload^
+    def __init__(out self, *, deinit move: Self):
+        self.fin = move.fin
+        self.opcode = move.opcode
+        self.payload = move.payload^
 
     def as_text(self) -> String:
         """Interpret payload as UTF-8 text."""
@@ -150,18 +151,18 @@ struct WebSocket(Movable):
         self.allow_private_ips = True
         self.origin = String("")
 
-    def __moveinit__(out self, deinit take: Self):
-        self._tcp = take._tcp^
-        self._tls = take._tls^
-        self._use_tls = take._use_tls
-        self._connected = take._connected
-        self._host = take._host^
-        self._path = take._path^
-        self.max_message_size = take.max_message_size
-        self.max_frame_size = take.max_frame_size
-        self.max_send_size = take.max_send_size
-        self.allow_private_ips = take.allow_private_ips
-        self.origin = take.origin^
+    def __init__(out self, *, deinit move: Self):
+        self._tcp = move._tcp^
+        self._tls = move._tls^
+        self._use_tls = move._use_tls
+        self._connected = move._connected
+        self._host = move._host^
+        self._path = move._path^
+        self.max_message_size = move.max_message_size
+        self.max_frame_size = move.max_frame_size
+        self.max_send_size = move.max_send_size
+        self.allow_private_ips = move.allow_private_ips
+        self.origin = move.origin^
 
     def connect(mut self, url_str: String) raises:
         """Connect to a WebSocket server.
@@ -170,7 +171,7 @@ struct WebSocket(Movable):
         the HTTP upgrade handshake.
 
         Args:
-            url_str: WebSocket URL (ws:// or wss://)
+            url_str: WebSocket URL (ws:// or wss://).
         """
         var url = parse_url(url_str)
 
@@ -342,15 +343,12 @@ struct WebSocket(Movable):
                     message_opcode = frame.opcode
                     accumulated = frame.payload.copy()
 
-        # Unreachable, but required by Mojo
-        return WebSocketFrame()
-
     def close(mut self, code: Int = 1000, reason: String = "") raises:
         """Send close frame and shut down the connection.
 
         Args:
-            code: WebSocket close status code (default 1000 = normal)
-            reason: Human-readable close reason
+            code: WebSocket close status code (default 1000 = normal).
+            reason: Human-readable close reason.
         """
         if not self._connected:
             return
@@ -413,7 +411,7 @@ struct WebSocket(Movable):
         _buf_append_str(buf, "\r\n")
         _buf_append_str(buf, "Sec-WebSocket-Version: 13\r\n")
         # Optional Origin header (helps servers with CSWSH protection)
-        if len(self.origin) > 0:
+        if self.origin.byte_length() > 0:
             _buf_append_str(buf, "Origin: ")
             _buf_append_str(buf, self.origin)
             _buf_append_str(buf, "\r\n")
@@ -601,17 +599,48 @@ struct WebSocket(Movable):
                 )
                 if ret < 0:
                     # Check for EINTR (errno=4) — retry on signal interruption
-                    if _get_errno() == 4:
-                        buf.free()
+                    var errno = _get_errno()
+                    if errno == 4:
+                        buf.unsafe_free()
                         continue
-                    buf.free()
-                    raise Error("TCP read failed in _recv_exact")
+                    buf.unsafe_free()
+                    # errno 35 (macOS) / 11 (Linux) is EAGAIN/EWOULDBLOCK, which
+                    # on a blocking socket with SO_RCVTIMEO set means the
+                    # receive timeout elapsed with no data -- distinct from a
+                    # real socket error or a closed connection. Report which
+                    # one actually happened: a prior version of this message
+                    # ("TCP read failed") didn't distinguish these, which made
+                    # a real bug (an unrelated malformed CDP command upstream
+                    # causing Chrome to silently drop it, so no response ever
+                    # arrived) look like a mysterious dropped connection.
+                    if errno == 35 or errno == 11:
+                        raise Error(
+                            "TCP read timed out in _recv_exact (errno="
+                            + String(errno)
+                            + ", got "
+                            + String(len(result))
+                            + "/"
+                            + String(n)
+                            + " bytes) -- no data arrived within the socket's"
+                            " receive timeout"
+                        )
+                    raise Error(
+                        "TCP read failed in _recv_exact (errno="
+                        + String(errno)
+                        + ")"
+                    )
                 elif ret == 0:
-                    buf.free()
-                    raise Error("TCP read failed in _recv_exact")
+                    buf.unsafe_free()
+                    raise Error(
+                        "TCP connection closed by peer in _recv_exact (got "
+                        + String(len(result))
+                        + "/"
+                        + String(n)
+                        + " bytes)"
+                    )
                 for i in range(Int(ret)):
-                    result.append((buf + i)[])
-                buf.free()
+                    result.append(buf[unsafe_offset=i])
+                buf.unsafe_free()
 
         return result^
 

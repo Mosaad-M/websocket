@@ -9,8 +9,8 @@
 from websocket import WebSocket, WebSocketFrame, WS_OPCODE_TEXT, WS_OPCODE_BINARY, WS_OPCODE_CLOSE
 
 
-alias TEST_URL = "ws://127.0.0.1:18081"
-alias MALICIOUS_URL = "ws://127.0.0.1:18082"
+comptime TEST_URL = "ws://127.0.0.1:18081"
+comptime MALICIOUS_URL = "ws://127.0.0.1:18082"
 
 
 # ============================================================================
@@ -467,11 +467,10 @@ def main() raises:
     var passed = 0
     var failed = 0
 
-    def run_test(
+    def run_test[test_fn: def () thin raises -> None](
         name: String,
         mut passed: Int,
         mut failed: Int,
-        test_fn: def () raises -> None,
     ):
         try:
             test_fn()
@@ -486,121 +485,42 @@ def main() raises:
     print()
 
     # Functional tests
-    run_test("connect and close", passed, failed, test_connect_and_close)
-    run_test("send/recv text", passed, failed, test_send_recv_text)
-    run_test("send/recv binary", passed, failed, test_send_recv_binary)
-    run_test("multiple messages", passed, failed, test_multiple_messages)
-    run_test(
-        "medium message (>125 bytes)", passed, failed, test_medium_message
-    )
-    run_test(
-        "large message (>65535 bytes)", passed, failed, test_large_message
-    )
-    run_test("empty message", passed, failed, test_empty_message)
-    run_test("connect failure", passed, failed, test_connect_failure)
+    run_test[test_connect_and_close]("connect and close", passed, failed)
+    run_test[test_send_recv_text]("send/recv text", passed, failed)
+    run_test[test_send_recv_binary]("send/recv binary", passed, failed)
+    run_test[test_multiple_messages]("multiple messages", passed, failed)
+    run_test[test_medium_message]("medium message (>125 bytes)", passed, failed)
+    run_test[test_large_message]("large message (>65535 bytes)", passed, failed)
+    run_test[test_empty_message]("empty message", passed, failed)
+    run_test[test_connect_failure]("connect failure", passed, failed)
 
     # Security tests
     print()
     print("--- Security Tests ---")
     print()
-    run_test(
-        "[H2] masked server frame rejected",
-        passed,
-        failed,
-        test_security_masked_server_frame,
-    )
-    run_test(
-        "[H1] RSV bits rejected",
-        passed,
-        failed,
-        test_security_rsv_bits,
-    )
-    run_test(
-        "[C3] oversized ping rejected",
-        passed,
-        failed,
-        test_security_oversized_ping,
-    )
-    run_test(
-        "[L1] fragmented ping rejected",
-        passed,
-        failed,
-        test_security_fragmented_ping,
-    )
-    run_test(
-        "[C1] huge payload rejected",
-        passed,
-        failed,
-        test_security_huge_payload,
-    )
-    run_test(
-        "[C1] custom max_frame_size enforced",
-        passed,
-        failed,
-        test_security_custom_max_frame_size,
-    )
+    run_test[test_security_masked_server_frame]("[H2] masked server frame rejected", passed, failed)
+    run_test[test_security_rsv_bits]("[H1] RSV bits rejected", passed, failed)
+    run_test[test_security_oversized_ping]("[C3] oversized ping rejected", passed, failed)
+    run_test[test_security_fragmented_ping]("[L1] fragmented ping rejected", passed, failed)
+    run_test[test_security_huge_payload]("[C1] huge payload rejected", passed, failed)
+    run_test[test_security_custom_max_frame_size]("[C1] custom max_frame_size enforced", passed, failed)
 
     print()
     print("--- Session 2 Security Tests ---")
     print()
-    run_test(
-        "[H3] invalid close code rejected",
-        passed,
-        failed,
-        test_security_invalid_close_code,
-    )
-    run_test(
-        "[H3] reserved close code 1005 rejected",
-        passed,
-        failed,
-        test_security_close_code_1005,
-    )
-    run_test(
-        "[H4] invalid UTF-8 text rejected",
-        passed,
-        failed,
-        test_security_invalid_utf8,
-    )
-    run_test(
-        "[M2] bad handshake 200 rejected",
-        passed,
-        failed,
-        test_security_bad_handshake_200,
-    )
-    run_test(
-        "[M2] bad handshake accept rejected",
-        passed,
-        failed,
-        test_security_bad_handshake_accept,
-    )
+    run_test[test_security_invalid_close_code]("[H3] invalid close code rejected", passed, failed)
+    run_test[test_security_close_code_1005]("[H3] reserved close code 1005 rejected", passed, failed)
+    run_test[test_security_invalid_utf8]("[H4] invalid UTF-8 text rejected", passed, failed)
+    run_test[test_security_bad_handshake_200]("[M2] bad handshake 200 rejected", passed, failed)
+    run_test[test_security_bad_handshake_accept]("[M2] bad handshake accept rejected", passed, failed)
 
     print()
     print("--- Session 3 Security Tests ---")
     print()
-    run_test(
-        "SSRF private IP blocked",
-        passed,
-        failed,
-        test_security_ssrf_private_ip,
-    )
-    run_test(
-        "[M4] send text size limit enforced",
-        passed,
-        failed,
-        test_security_send_size_limit,
-    )
-    run_test(
-        "[M4] send binary size limit enforced",
-        passed,
-        failed,
-        test_security_send_binary_size_limit,
-    )
-    run_test(
-        "Origin header in handshake",
-        passed,
-        failed,
-        test_security_origin_header,
-    )
+    run_test[test_security_ssrf_private_ip]("SSRF private IP blocked", passed, failed)
+    run_test[test_security_send_size_limit]("[M4] send text size limit enforced", passed, failed)
+    run_test[test_security_send_binary_size_limit]("[M4] send binary size limit enforced", passed, failed)
+    run_test[test_security_origin_header]("Origin header in handshake", passed, failed)
 
     print()
     print("Results:", passed, "passed,", failed, "failed")
