@@ -11,29 +11,8 @@
 #
 # ============================================================================
 
-from std.ffi import external_call
+from std.ffi import external_call, get_errno
 from std.memory import alloc
-from std.memory.unsafe_pointer import Pointer
-from std.sys import CompilationTarget
-
-
-def _get_errno() -> Int32:
-    """Read errno without a C shim. Uses __errno_location (Linux) or __error (macOS).
-    comptime if ensures only the live branch is compiled, avoiding unresolved symbols."""
-    comptime if CompilationTarget.is_linux():
-        var ptr = external_call["__errno_location", Int]()
-        var ebuf = alloc[Int32](1)
-        _ = external_call["memcpy", Int](Int(ebuf), ptr, Int(4))
-        var val = ebuf[]
-        ebuf.unsafe_free()
-        return val
-    else:
-        var ptr = external_call["__error", Int]()
-        var ebuf = alloc[Int32](1)
-        _ = external_call["memcpy", Int](Int(ebuf), ptr, Int(4))
-        var val = ebuf[]
-        ebuf.unsafe_free()
-        return val
 
 from tcp import TcpSocket
 from tls.socket import TlsSocket, load_system_ca_bundle
@@ -42,6 +21,12 @@ from url import parse_url
 from crypto.sha1 import sha1
 from crypto.base64 import base64_encode
 from crypto.random import csprng_bytes
+
+
+def _get_errno() -> Int32:
+    """Current errno, via std.ffi.get_errno: a program may declare each C
+    function once, and std declares __error / __errno_location itself."""
+    return Int32(get_errno().value)
 
 
 # ============================================================================
