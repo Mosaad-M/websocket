@@ -7,6 +7,7 @@ version = "0.1.0"
 [tasks]
 run = "bash build_and_run.sh main.mojo"
 test = "bash -c 'python test_ws_server.py & sleep 1 && bash build_and_run.sh test_websocket.mojo; RET=$?; kill %1 2>/dev/null; exit $RET'"
+test-std-compat = "bash build_and_run.sh test_std_compat.mojo"
 format = "mblack websocket.mojo main.mojo test_websocket.mojo"
 
 [dependencies]
