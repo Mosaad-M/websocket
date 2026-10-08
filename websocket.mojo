@@ -184,7 +184,7 @@ struct WebSocket(Movable):
         # Step 2: TLS handshake if wss://
         if self._use_tls:
             var trust_anchors = load_system_ca_bundle()
-            self._tls = TlsSocket(self._tcp.fd)
+            self._tls = TlsSocket(self._tcp.detach())
             self._tls.connect(url.host, trust_anchors)
 
         # Step 3: WebSocket upgrade handshake
