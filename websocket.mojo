@@ -12,7 +12,7 @@
 # ============================================================================
 
 from std.ffi import external_call, get_errno
-from std.memory import alloc
+from std.memory.alloc import unsafe_alloc
 
 from tcp import TcpSocket
 from tls.socket import TlsSocket, load_system_ca_bundle
@@ -89,7 +89,7 @@ struct WebSocketFrame(Copyable, Movable):
     def as_text(self) -> String:
         """Interpret payload as UTF-8 text."""
         var copy = self.payload.copy()
-        return String(unsafe_from_utf8=copy^)
+        return String(unsafe_from_utf8=copy)
 
 
 # ============================================================================
@@ -403,7 +403,7 @@ struct WebSocket(Movable):
         _buf_append_str(buf, "\r\n")
 
         # Send the request
-        var request = String(unsafe_from_utf8=buf^)
+        var request = String(unsafe_from_utf8=buf)
         self._raw_send_str(request)
 
         # Read response
@@ -434,7 +434,7 @@ struct WebSocket(Movable):
             if blen > 16384:
                 raise Error("handshake response too large")
 
-        return String(unsafe_from_utf8=buf^)
+        return String(unsafe_from_utf8=buf)
 
     def _send_frame(
         mut self, opcode: UInt8, payload: List[UInt8]
@@ -561,7 +561,7 @@ struct WebSocket(Movable):
         if payload_len > 0:
             payload = self._recv_exact(payload_len)
 
-        return WebSocketFrame(fin, opcode, payload^)
+        return WebSocketFrame(fin, opcode, payload)
 
     def _recv_exact(mut self, n: Int) raises -> List[UInt8]:
         """Read exactly n bytes from the socket."""
@@ -578,7 +578,7 @@ struct WebSocket(Movable):
                 for i in range(len(chunk)):
                     result.append(chunk[i])
             else:
-                var buf = alloc[UInt8](remaining)
+                var buf = unsafe_alloc[UInt8](remaining)
                 var ret = external_call["recv", Int](
                     self._tcp.fd, Int(buf), remaining, Int32(0)
                 )
@@ -670,7 +670,7 @@ def _buf_append_str(mut buf: List[UInt8], s: String):
 def _bytes_to_string(data: List[UInt8]) -> String:
     """Convert a List[UInt8] to a String (raw bytes, not UTF-8 validated)."""
     var copy = data.copy()
-    return String(unsafe_from_utf8=copy^)
+    return String(unsafe_from_utf8=copy)
 
 
 def _str_contains(haystack: String, needle: String) -> Bool:
@@ -730,7 +730,7 @@ def _validate_handshake_response(
     var status_buf = List[UInt8](capacity=first_line_end)
     for i in range(first_line_end):
         status_buf.append(bytes[i])
-    var status_line = String(unsafe_from_utf8=status_buf^)
+    var status_line = String(unsafe_from_utf8=status_buf)
 
     # Must start with "HTTP/1.1 101"
     if not _str_starts_with(status_line, "HTTP/1.1 101"):
@@ -766,7 +766,7 @@ def _validate_handshake_response(
             var key_buf = List[UInt8](capacity=colon_pos - i)
             for j in range(i, colon_pos):
                 key_buf.append(bytes[j])
-            var key = String(unsafe_from_utf8=key_buf^)
+            var key = String(unsafe_from_utf8=key_buf)
 
             if _eq_ignore_case(key, "Sec-WebSocket-Accept"):
                 # Extract value (skip colon and whitespace)
@@ -776,7 +776,7 @@ def _validate_handshake_response(
                 var val_buf = List[UInt8](capacity=line_end - val_start)
                 for j in range(val_start, line_end):
                     val_buf.append(bytes[j])
-                var val = String(unsafe_from_utf8=val_buf^)
+                var val = String(unsafe_from_utf8=val_buf)
 
                 if val != expected_accept:
                     raise Error(

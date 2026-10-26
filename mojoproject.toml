@@ -6,7 +6,7 @@ license = "MIT"
 platforms = ["linux-64", "osx-arm64"]
 
 [mojo]
-requires = ">=1.0.0"
+requires = ">=1.2.0"
 
 [dependencies]
 tls = { git = "Mosaad-M/tls", version = ">=1.7.0" }
