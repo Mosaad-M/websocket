@@ -111,7 +111,7 @@ def test_medium_message() raises:
     var buf = List[UInt8](capacity=200)
     for i in range(200):
         buf.append(UInt8(65 + (i % 26)))  # A-Z repeating
-    var msg = String(unsafe_from_utf8=buf^)
+    var msg = String(unsafe_from_utf8=buf)
     ws.send_text(msg)
     var frame = ws.recv()
     assert_int_eq(len(frame.payload), 200, "medium payload length")
@@ -129,7 +129,7 @@ def test_large_message() raises:
     var buf = List[UInt8](capacity=size)
     for i in range(size):
         buf.append(UInt8(48 + (i % 10)))  # 0-9 repeating
-    var msg = String(unsafe_from_utf8=buf^)
+    var msg = String(unsafe_from_utf8=buf)
     ws.send_text(msg)
     var frame = ws.recv()
     assert_int_eq(len(frame.payload), size, "large payload length")
@@ -263,7 +263,7 @@ def test_security_custom_max_frame_size() raises:
     var buf = List[UInt8](capacity=200)
     for i in range(200):
         buf.append(UInt8(65 + (i % 26)))
-    ws.send_text(String(unsafe_from_utf8=buf^))
+    ws.send_text(String(unsafe_from_utf8=buf))
     var raised = False
     try:
         _ = ws.recv()
@@ -396,7 +396,7 @@ def test_security_send_size_limit() raises:
         buf.append(UInt8(65 + (i % 26)))
     var raised = False
     try:
-        ws.send_text(String(unsafe_from_utf8=buf^))
+        ws.send_text(String(unsafe_from_utf8=buf))
     except e:
         if _err_contains(String(e), "send payload too large"):
             raised = True
